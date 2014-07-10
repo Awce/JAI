@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html lang="es">
+	<head>
+		<title>JAI</title>
+		<!-- CSS -->
+		<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css" />
+		<!-- JS -->
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/jquery-ui.min.js"></script>
+		<!-- meta -->
+		<meta charset="UTF-8">
+		
+		<script type="text/javascript">
+			$(document).on('ready',function(){
+				$('#Insertar').on('click',function(e){
+				e.preventDefault();
+				var serie = $('#serie').val();
+				var folio = $('#folio').val();
+
+				var formproduct =$('#producto').serializeArray();
+				formproduct.push({name:'serie',value:serie});
+				formproduct.push({name:'folio',value:folio});
+
+				var c,u,d,p,t;
+				var row="";
+				$.ajax({
+					type:"GET",
+					contentType:"application/json;charset=utf-8",
+					dateType:"json",
+					data:formproduct,
+					//data:$('#producto').serialize(),
+					url:"/ws/insertar/producto/",
+					success:function(response){
+					if(response.respuesta == 'OK'){
+						c = '<td>'.concat(response.codigo).concat('</td>');
+						u = '<td>'.concat(response.unidad).concat('</td>');
+						d = '<td>'.concat(response.producto).concat('</td>');
+						p = '<td>'.concat(response.precio).concat('</td>');
+						t = '<td>'.concat(response.total).concat('</td>').concat('<td>X</td>');
+						var ini ='<tr>';
+						var fin = '</tr>';
+						var row = ini.concat(c).concat(u).concat(d).concat(p).concat(t).concat(fin);
+						//alert(response.saludo);
+						$("#TablaVentas tbody").prepend(row);
+					}else{
+						alert("no se pudo añadir el producto");
+						}
+					}
+				});
+			});
+			
+			//
+			$('#serie').on('change',function(e){
+				e.preventDefault();
+				var serie = $(this).val();
+				$.ajax({
+					type:"GET",
+					contentType:"application/json;charset=utf-8",
+					dateType:"json",
+					data:{'serie':serie},
+					url:"/ws/buscar/folio/",
+					success:function(response){
+					if(response.respuesta == 'OK'){
+						$('#folio').val(response.folio);
+						//alert(response.saludo);
+						//$("#TablaVentas tbody").prepend(row);
+					}else{
+						alert("no se existe serie de folio");
+						}
+					}
+				});
+			});
+			
+			$('#searchRfc').on('focusout',function(e){
+				var rfc = $(this).val();
+				$.ajax({
+				type:"GET",
+				contentType:"application/json;charset=utf-8",
+				dateType:"json",
+				data:{'rfc':rfc},
+				url:"/ws/buscar/receptor/",
+				success:function(response){
+					if (response.respuesta == "OK"){
+						$("#pais").val(response.pais);
+						$("#razon").val(response.razon);
+						$("#estado").val(response.estado);
+						$("#municipio").val(response.municipio);
+						$("#colonia").val(response.colonia);
+						$("#calle").val(response.calle);
+						$("#exterior").val(response.exterior);
+						$("#interior").val(response.interior);
+						$("#cp").val(response.cp);
+						$("#correo").val(response.correo);
+						$("#referencia").val(response.referencia);
+					}else{
+						$("#pais").val("");
+						$("#razon").val("");
+						$("#estado").val("");
+						$("#municipio").val("");
+						$("#colonia").val("");
+						$("#calle").val("");
+						$("#exterior").val("");
+						$("#interior").val("");
+						$("#cp").val("");
+						$("#correo").val("");
+						$("#referencia").val("");
+					}
+				}
+				});
+			});
+		});
+
+function searchOpen() {
+    var search = $('#searchRfc').val()
+    var data = {
+        search: search
+    };
+    $.ajax({
+        url: '/ws/search/json/',
+        data: data,
+        dataType: 'jsonp',
+        jsonp: 'callback',
+        jsonpCallback: 'searchResult'
+    });
+}
+
+
+function searchResult(data) {
+    $( "#searchRfc" ).autocomplete ({
+        source: data
+    });
+}
+		</script>
+	</head>
+	
+	<body style="background-color:#ff1493;">
+	<div id="principal" style="overflow:hidden;width:100%">
+		<h1 style="color:white;">Facturación Electrónica CFDI</h1>
+	<div style="width:13%;float:left;background-color:#0099ff;margin-right:3px;border:2px white solid;">
+			<br>
+			opcion1 <br>
+			opcion2<br>
+			opcion3<br>
+			opcion4<br>
+	</div>
+	
+	<div style="width:86%;float:left;">
+	
+	<div style="width:21%;float:left;background-color:#808080;">
+		<fieldset style="">
+			<legend>Datos Cliente</legend>
+			<label for="tipo_documento">*Tipo de documento</label><br>
+			<select>
+			<option >----------</option>
+			{% for td in doc %}
+			<option value="{{ td.nombre }}">{{ td.nombre }}</option>
+			{% endfor %}
+			</select>
+			<label for="serie">Serie</label><br>
+			<select id="serie">
+			<option >----------</option>
+			{% for sr in ser %}
+			<option value="{{ sr.serie }}">{{ sr.serie }}</option>
+			{% endfor %}
+			</select><br>
+			<label for="folio">Folio</label><br>
+			<input name="folio" type="text" id="folio" disabled/><br>
+		</fieldset>
+	
+		<fieldset>
+			<label for="sucursal">*Sucursal</label><br>
+			<select id="sucursal">
+			<option value="Matrix">Matriz</option>
+			</select><br>
+			<label for="moneda">Moneda</label><br>
+			<select id="moneda">
+			<option >----------</option>
+			<option value="efectivo">Efectivo</option>
+			<option value="cheque">Cheque</option>
+			<option value="transferencia">Transferencia</option>
+			</select><br>
+			<label for="cond_pago">Condiciones de Pago</label><br>
+			<input name="cond_pago" type="text" /><br>
+			<label for="lugar_expedicion">Lugar de Expedición</label><br>
+			<input name="lugar_expedicion" type="text" /><br>
+			<label for="cuenta">Cuenta de pago</label><br>
+			<input name="cuenta" type="text" /><br>
+			<input type="radio" name="pago" value="contado">Pago en una solo exhibición<br>
+			<input type="radio" name="pago" value="parcial">En parcialidades<br>	
+		</fieldset>
+	</div>
+	
+	<div style="width:21%;float:left;background-color:#808080">
+		<fieldset>
+			<legend>Datos de ubucacion</legend>
+			<label for="rfc">*RFC</label><br>
+			<input name="rfc" id="searchRfc" type="text" onkeyup="searchOpen()"/><br>
+			<label for="razon_social">*Razón Social</label><br>
+			<input name="razon_social" type="text" id="razon"/><br>	
+			<label for="pais" >*País</label><br>
+			<input name="pais" type="text" id="pais" /><br>
+			<label for="estado">Estado</label><br>
+			<input name="estado" type="text" id="estado"/><br>
+			<label for="municipio">Municipio</label><br>
+			<input name="municipio" type="text" id="municipio"/><br>
+			<label for="pais">Colonia</label><br>
+			<input name="colonia" type="text" id="colonia"/><br>
+			<label for="calle">Calle</label><br>
+			<input name="calle" type="text" id="calle"/><br>
+			<label for="numero_exterior">No. Exterior</label><br>
+			<input name="numero_exterior" type="text" id="exterior"/><br>			
+			<label for="numero_interior">No. Interior</label><br>
+			<input name="numero_interior" type="text" id="interior"/><br>
+			<label for="codigo_postal">C.P</label><br>
+			<input name="codigo_postal" type="text" id="cp"/><br>
+			<label for="correo">Correo</label><br>
+			<input name="correo" type="text" id="correo"/><br>
+			<label for="referencia">Referencia</label><br>
+			<input name="referencia" type="text" id="referencia"/><br><br>
+		</fieldset>
+	</div>
+	
+	<div style="float:left;width:55%;background-color:white;margin-left:5px;">
+		<p style="color:red;" >Carrito de Productos</p>
+		<form id="producto">
+		<fieldset>
+		<label for="codigo">Codigo</label>
+		<input name="codigo" type="text" codigo style="width:150px;"/>		
+		<label for="producto">Producto</label>
+		<input name="producto" type="text" style="width:320px;"/><br>
+		<label for="unidad">Unidad</label>
+		<input name="unidad" type="text" style="width:160px;"/>
+		<label for="cantidad">Cantidad</label>
+		<input name="cantidad" type="text" style="width:100px;"/>
+		<label for="precio">Precio Unitario</label>
+		<input name="precio" type="text" style="width:100px;" /><br>
+		<input type="checkbox" name="grava" value="grava" checked> Grava<br>
+		<a href="#" id="Insertar">Add</a>
+		</fieldset>
+		</form>
+		<br>
+
+
+			<table border="1" id="TablaVentas" style="width:50%;">
+			<thead>
+				<tr>
+					<td>Código</td>
+					<td>Unidad</td>
+					<td>Descripción</td>
+					<td>Precio Uni.</td>
+					<td>Total</td>
+					<td>Eliminar</td>
+				</tr>
+			</thead>
+			<tbody>
+			
+			</tbody>
+			</table>
+
+	</div>
+	
+</div> <!-- div 86% -->
+		
+	</div> <!-- div id=principal -->
+	</body>
+</htlm>
