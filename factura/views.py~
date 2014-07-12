@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.core import serializers
-from factura.models import Documento,Folio,Receptor
+from factura.models import Documento,Folio,Receptor,Ticket
 from django.utils import simplejson
 import json
 from django.shortcuts import get_list_or_404, get_object_or_404
@@ -24,18 +24,45 @@ def wsInsertarProducto(request):
 		#print request.GET['serie']
 		if 'producto' in request.GET: 
 		#request.GET['producto'] and request.GET['unidad'] and request.GET['cantidad'] and request.GET['precio'] :
+			serie =request.GET['serie']
+			folio = request.GET['folio']
 			total =0;
-			codigo=""
+			codigo=request.GET['codigo']
 			producto=request.GET['producto']
 			unidad=request.GET['unidad']
 			cantidad=request.GET['cantidad']
 			precio=request.GET['precio']
-			if request.GET['grava'] == 'grava':
+			if 'grava' in request.GET:
 				total = float(precio) * float(cantidad) * 1.16
 			else:
 				total = float(precio) * float(cantidad)
-			ctx ={'precio':precio,'producto':producto,'unidad':unidad,'cantidad':cantidad,'total':total,'codigo':'000','respuesta':'OK'}
+			
+			#ctx ={'precio':precio,'producto':producto,'unidad':unidad,'cantidad':cantidad,'total':total,'codigo':codigo,'respuesta':'OK'}
+			#data = json.dumps(ctx)
+			t = Ticket()
+			t.serie = serie
+			t.folio=folio
+			t.codigo=codigo
+			t.producto=producto
+			t.unidad=unidad
+			t.cantidad=cantidad
+			t.precio=precio
+			t.total=total
+			t.save()
+			subtotal=0.00
+			iva=0.00
+			ttal=0.00
+			ticket = Ticket.objects.filter(serie=serie)
+			for i in ticket:
+				subtotal += (float(i.precio*i.cantidad))
+				ttal +=float(i.total)
+				iva=float(total-subtotal) 
+			ctx ={'precio':precio,'producto':producto,'unidad':unidad,'cantidad':cantidad,
+			'total':total,'codigo':codigo,'respuesta':'OK','subtotal':float(subtotal),'iva':float(iva),'ttal':float(ttal)}
 			data = json.dumps(ctx)
+			#f = get_object_or_404(Folio,serie=t.serie)		
+			#f.folio_actual = int(folio)+1
+			#f.save()
 		else:
 			data = json.dumps({'respuesta':'failed'})
 	return HttpResponse(data,mimetype='application/json')
@@ -43,7 +70,10 @@ def wsInsertarProducto(request):
 def wsBuscarReceptor(request):
 	if request.method == "GET":
 		rfc = request.GET['rfc']
-
+		d={'razon':"",'pais':"",'estado':"",'municipio':"",'colonia':"",
+		'calle':"",'interior':"",'exterior':"",'cp':"",
+		'correo':"",'referencia':"",'respuesta':'fail','rfc':""}
+				
 		if rfc !="":
 			try:
 				r = get_object_or_404(Receptor,rfc=rfc)		
@@ -53,16 +83,14 @@ def wsBuscarReceptor(request):
 				data = 	json.dumps(d)	
 				return  HttpResponse(data,mimetype='application/json')
 			except:
-				data = 	json.dumps({'respuesta':'fail'})
+				data = 	json.dumps(d)	
 				return  HttpResponse(data,mimetype='application/json')
 
 
 		else:
-			data = 	json.dumps({'respuesta':'fail'})
+			data = 	json.dumps(d)	
 			return  HttpResponse(data,mimetype='application/json')
 
-			
-		
 		
 def wsBuscarFolio(request):
 	if request.method == "GET":

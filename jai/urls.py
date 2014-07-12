@@ -1,6 +1,9 @@
 from django.conf.urls import patterns, include, url
 from factura.views import index,wsInsertarProducto,wsBuscarFolio,autocompleteRfc,wsBuscarReceptor
 from django.contrib import admin
+from django.conf.urls.static import static
+from django.conf import settings
+
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -14,4 +17,12 @@ urlpatterns = patterns('',
 	(r'^ws/buscar/receptor/$',wsBuscarReceptor),
 	
     url(r'^admin/', include(admin.site.urls)),
+
 )
+
+
+if settings.DEBUG:
+    urlpatterns += patterns('django.contrib.staticfiles.views',
+        url(r'^static/(?P<path>.*)$', 'serve'),
+    )
+

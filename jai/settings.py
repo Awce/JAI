@@ -10,6 +10,8 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
+    
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -26,14 +28,11 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-MEDIA_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__),'media/'))
+MEDIA_ROOT = ''
 
 MEDIA_URL = '/media/'
 
-STATIC_ROOT = ''
-
-
-
+STATIC_ROOT =''
 # Application definition
 
 INSTALLED_APPS = (
@@ -58,6 +57,11 @@ MIDDLEWARE_CLASSES = (
 TEMPLATE_DIRS = (
 	os.path.join(os.path.dirname(__file__),'templates'),
 )
+STATICFILES_DIRS = (
+    # ...
+    '/home/ja1000/Projects/jai/static/',
+)
+print '/home/ja1000/Projects/jai/static/js'
 
 ROOT_URLCONF = 'jai.urls'
 
@@ -95,6 +99,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-STATIC_URL = '/static/'
 
+STATIC_URL = '/static/'
 
